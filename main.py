@@ -2,6 +2,8 @@ import datetime
 import argparse
 import json
 
+from tabulate import tabulate
+
 from expense import Expense
 from typing import Optional
 
@@ -57,9 +59,15 @@ def main():
   # Subcommand for adding a new expense
   add_parser = subparsers.add_parser('add', help='Add a new expense')
   add_parser.add_argument('description', type=str, help='Description of the expense')
-
-  add_parser.add_argument('amount', type=int, help='Amount of the expense')
+  add_parser.add_argument('category', type=str, choices=['expense', 'investment', 'saving', 'pleasure'], help='Description of the expense')
+  add_parser.add_argument('amount', type=float, help='Amount of the expense')
+  add_parser.add_argument('--currency', type=str, choices=['CLP', 'USD'], default='CLP', help='Currency of the expense')
   add_parser.add_argument('--expense-date', type=str, default=datetime.datetime.now().date().isoformat(), help='Time of creation of the expense')
+
+  # Subcommand for listing tasks
+  list_parser = subparsers.add_parser('list', help='List all tasks')
+  list_parser.add_argument('--status', type=str, help='List tasks by status')
+  list_parser.add_argument('--due-date', type=str, help='List tasks by due date')
 
   args = parser.parse_args()  # Parse the command-line arguments
 
@@ -67,12 +75,21 @@ def main():
     new_id = get_next_id(expenses) # Generate a new expense ID
 
     # Create a new expense and append it to the list
-    expense = Expense(new_id, args.expense_date, args.description, args.amount, datetime.datetime.now().isoformat(), datetime.datetime.now().isoformat())
+    expense = Expense(new_id, args.expense_date, args.description, args.category, args.amount, args.currency, datetime.datetime.now().isoformat(), datetime.datetime.now().isoformat())
     expenses.append(expense)
 
     save_expenses(filename, expenses) # Save expenses to the file
 
     print(f"Expense added successfully (ID: {expense.id})")
+  elif args.command == 'list':
+    # Prepare data for tabulate
+    table = []
+    for expense in expenses:
+      table.append([expense.category, expense.description, expense.amount, expense.expense_date])
+    # Define headers
+    headers = ["Category", "Description", "Amount", "Date"]
+    # Print using tabulate
+    print(tabulate(table, headers, tablefmt="grid"))
   else:
     parser.print_help() # Print help message if no valid subcommand is provided
 
