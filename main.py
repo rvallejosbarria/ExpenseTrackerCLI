@@ -59,15 +59,18 @@ def main():
   # Subcommand for adding a new expense
   add_parser = subparsers.add_parser('add', help='Add a new expense')
   add_parser.add_argument('description', type=str, help='Description of the expense')
-  add_parser.add_argument('category', type=str, choices=['expense', 'investment', 'saving', 'pleasure'], help='Description of the expense')
+  add_parser.add_argument('category', type=str, choices=['expense', 'investment', 'saving', 'pleasure'], help='Category of the expense')
   add_parser.add_argument('amount', type=float, help='Amount of the expense')
   add_parser.add_argument('--currency', type=str, choices=['CLP', 'USD'], default='CLP', help='Currency of the expense')
   add_parser.add_argument('--expense-date', type=str, default=datetime.datetime.now().date().isoformat(), help='Time of creation of the expense')
 
-  # Subcommand for listing tasks
-  list_parser = subparsers.add_parser('list', help='List all tasks')
-  list_parser.add_argument('--status', type=str, help='List tasks by status')
-  list_parser.add_argument('--due-date', type=str, help='List tasks by due date')
+  # Subcommand for listing expenses
+  list_parser = subparsers.add_parser('list', help='List all expenses')
+
+  # Subcommand for summary
+  summary_parser = subparsers.add_parser('summary', help='Get a summary of all expenses')
+  summary_parser.add_argument('--category', type=str, choices=['expense', 'investment', 'saving', 'pleasure'],
+                              help='Category of the expense')
 
   args = parser.parse_args()  # Parse the command-line arguments
 
@@ -90,6 +93,11 @@ def main():
     headers = ["Category", "Description", "Amount", "Date"]
     # Print using tabulate
     print(tabulate(table, headers, tablefmt="grid"))
+  elif args.command == 'summary':
+    if args.category:
+      print(sum(expense.amount for expense in expenses if expense.category == args.category))
+    else:
+      print(sum(expense.amount for expense in expenses))
   else:
     parser.print_help() # Print help message if no valid subcommand is provided
 
